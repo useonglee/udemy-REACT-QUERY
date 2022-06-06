@@ -11,12 +11,16 @@ import {
   setStoredUser,
 } from '../../../user-storage';
 
-async function getUser(user: User | null): Promise<User | null> {
+async function getUser(
+  user: User | null,
+  signal: AbortSignal,
+): Promise<User | null> {
   if (!user) return null;
   const { data }: AxiosResponse<{ user: User }> = await axiosInstance.get(
     `/user/${user.id}`,
     {
       headers: getJWTHeader(user),
+      signal,
     },
   );
   return data.user;
@@ -32,7 +36,7 @@ export function useUser(): UseUser {
   const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(getStoredUser());
 
-  useQuery(queryKeys.user, () => getUser(user), {
+  useQuery(queryKeys.user, ({ signal }) => getUser(user, signal), {
     enabled: !!user,
     onSuccess: (data) => setUser(data),
   });
